@@ -1,9 +1,10 @@
 package rescue;
 
 // מחלקת אבא של Human ו- Drone
+// מממשת את מחלקת חילוץ Identifiable
 
 // מחלקת חילוץ
-public abstract class Responder {
+public abstract class Responder implements Identifiable<Integer> {
     // תעודת זהות
     protected int id;
     // האם נמצא באירוע
@@ -104,5 +105,10 @@ public abstract class Responder {
         Responder other = (Responder) obj;
         //  השוואת ה-ID כפי שנדרש בדרישות הפרויקט
         return this.id == other.id;
+    }
+
+    @Override
+    public Integer getKey() {
+        return this.id;
     }
 }

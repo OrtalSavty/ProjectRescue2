@@ -6,7 +6,7 @@ import java.util.ArrayList;
 // מכילה את מחלקת מוקדן Dispatcher
 
 // מחלקת אירועים
-public class Incident {
+public class Incident implements Identifiable<String>{
     // תיאור האירוע
     private String type;
     //מספר סידורי של האירוע
@@ -132,5 +132,8 @@ public class Incident {
         return this.serialNumber == other.serialNumber && this.type.equals(other.type);
     }
 
-
+    @Override
+    public String getKey() {
+        return this.type + "-" + this.serialNumber;
+    }
 }
