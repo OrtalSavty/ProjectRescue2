@@ -1,0 +1,5 @@
+LOAD_DATA data/responders_errors.csv data/incidents_errors.csv
+LOAD_UNKNOWN data/test.csv
+ASSIGN_ALL extra
+ASSIGN_ALL
+EXPORT_REPORT output/report.txt

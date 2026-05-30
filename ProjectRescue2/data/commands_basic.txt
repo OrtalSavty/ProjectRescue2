@@ -1,0 +1,3 @@
+LOAD_DATA data/responders_basic.csv data/incidents_basic.csv
+ASSIGN_ALL
+EXPORT_REPORT output/report.txt

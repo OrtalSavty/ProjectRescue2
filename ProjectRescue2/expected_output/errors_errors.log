@@ -1,0 +1,21 @@
+ERROR,data/responders_errors.csv,3,Duplicate responder
+ERROR,data/responders_errors.csv,4,Invalid id
+ERROR,data/responders_errors.csv,5,Invalid clearance
+ERROR,data/responders_errors.csv,6,Invalid specialization
+ERROR,data/responders_errors.csv,7,Invalid experience
+ERROR,data/responders_errors.csv,8,Invalid drink
+ERROR,data/responders_errors.csv,9,Invalid work no charge
+ERROR,data/responders_errors.csv,10,Invalid failures
+ERROR,data/responders_errors.csv,11,Invalid type
+ERROR,data/incidents_errors.csv,3,Duplicate incident
+ERROR,data/incidents_errors.csv,4,Invalid incident type
+ERROR,data/incidents_errors.csv,5,Invalid serial
+ERROR,data/incidents_errors.csv,6,Invalid clearance
+ERROR,data/incidents_errors.csv,7,Invalid hours
+ERROR,data/incidents_errors.csv,8,Invalid dispatchers
+ERROR,data/incidents_errors.csv,9,Invalid room
+ERROR,data/incidents_errors.csv,10,Invalid medics
+ERROR,data/incidents_errors.csv,11,Invalid drones
+ERROR,commands,2,Unknown command
+ERROR,commands,3,Invalid command format
+ERROR,ASSIGN_ALL,FIRE-1,Not enough dispatchers
