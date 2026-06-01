@@ -57,12 +57,26 @@ public class FieldAssignment {
                 '}';
     }
 
-    public void assignAllFieldParticipants(double hours, ClearanceLevel clearance) throws AssignFieldException {        // יצירת רשימות חדשות
-        // שתי רשימות חדשות אחת לרחפנים ואחת לפרמדיקים
+    private int getSpecializationPriority(Specialization specialization) {
+        switch (specialization) {
+            case PARAMEDIC:
+                return 1;
+            case SEARCHER:
+                return 2;
+            case NAVIGATOR:
+                return 3;
+            case TRAINEE:
+                return 4;
+            default:
+                return 5;
+        }
+    }
+
+    public void assignAllFieldParticipants(double hours, ClearanceLevel clearance, NationalRescueAuthority system) {        // שתי רשימות חדשות אחת לרחפנים ואחת לפרמדיקים
         ArrayList<Medic> availableMedics = new ArrayList<>();
         ArrayList<Drone> availableDrones = new ArrayList<>();
         // עוברים על כל אנשי מחלקת החילוץ
-        for (Responder r : NationalRescueAuthority.responders) {
+        for (Responder r : system.getResponders() ) {
             // בדיקה: לא עסוק, סיווג מתאים ויכול לעבוד את השעות
             if (!r.isBusy() && r.getClearance().ordinal() >= clearance.ordinal() && r.canWorkHours(hours)) {
                 // אם הפרמדיק עבר את הבדיקה נוסיף לרשימה
@@ -74,80 +88,67 @@ public class FieldAssignment {
                 }
             }
         }
-        // רשימה לכל סוג של פרמדיק
-        ArrayList<Medic> paramedics = new ArrayList<>();
-        ArrayList<Medic> navigators = new ArrayList<>();
-        ArrayList<Medic> searchers = new ArrayList<>();
-        ArrayList<Medic> trainees = new ArrayList<>();
-        // מעבר על מי שפנוי והשמה שלו ברשימה הנכונה לפי ההתמחות
-        for (Medic m : availableMedics) {
-            // הוספת החובש לרשימה המתאימה לפי ההתמחות שלו
-            if (m.getSpecialization() == Specialization.PARAMEDIC){
-                paramedics.add(m);
-            }
-            else if (m.getSpecialization() == Specialization.NAVIGATOR){
-                navigators.add(m);
-            }
-            else if (m.getSpecialization() == Specialization.SEARCHER) {
-                searchers.add(m);
-            }
-            else if (m.getSpecialization() == Specialization.TRAINEE){
-                trainees.add(m);
-            }
-        }
-        // בדיקה שיש לפחות 2 פרמדיקים
-        if (paramedics.size() < 2 || navigators.size() < 1) {
-            throw new AssignFieldException("Not enough medics");
-        }
-        // הקצאת חובשי החובה
-        enroll(paramedics.remove(0), hours);
-        enroll(paramedics.remove(0), hours);
-        enroll(navigators.remove(0), hours);
-        // מילוי שאר המכסה
-        int remaining = this.numMedics - 3;
-        for (int i = 0; i < remaining; i++) {
-            // שמירה על יחס 1:1 בין Searcher ל-Trainee עם עדיפות ל-Trainee
-            if (trainees.size() > 0 && (trainees.size() >= searchers.size() || searchers.size() == 0)) {
-                enroll(trainees.remove(0), hours);
-            } else if (searchers.size() > 0) {
-                enroll(searchers.remove(0), hours);
+        // שנה: בחר את הפרמדיקים המתאימים לפי עדיפות התמחות
+        availableMedics.sort((m1, m2) -> {
+            int cmp;
+            if (clearance == ClearanceLevel.LOW) {
+                cmp = Integer.compare(m1.getClearance().ordinal(), m2.getClearance().ordinal());
             } else {
-                // אם נגמרו שניהם, משלימים ממי שנשאר (פרמדיקים או נווטים)
-                if (paramedics.size() > 0) {
-                    enroll(paramedics.remove(0), hours);
-                }
-                else if (navigators.size() > 0) {
-                    enroll(navigators.remove(0), hours);
-                }
+                cmp = Integer.compare(m2.getClearance().ordinal(), m1.getClearance().ordinal());
             }
-        }
-        // אם אין מספיק פרמדיקים נזרוק שגיאה
-        int assignedMedicsCount = 0;
-        for (FieldParticipants p : fieldParticipants) {
-            if (p instanceof Medic) assignedMedicsCount++;
-        }
-        if (assignedMedicsCount < this.numMedics) {
+            if (cmp != 0) {
+                return cmp;
+            }
+            int rank1 = getSpecializationPriority(m1.getSpecialization());
+            int rank2 = getSpecializationPriority(m2.getSpecialization());
+            if (rank1 != rank2) {
+                return Integer.compare(rank1, rank2);
+            }
+            return Integer.compare(m1.getId(), m2.getId());
+        });
+
+        if (availableMedics.size() < this.numMedics) {
             throw new AssignFieldException("Not enough medics");
         }
-        // בדיקה אם יש בכלל מספיק רחפנים לפני שמתחילים
         if (availableDrones.size() < numDrones) {
             throw new AssignFieldException("Not enough field forces");
         }
-        // מיון לפי תקלות מהקטן לגדול
-        availableDrones.sort((d1, d2) -> Integer.compare(d1.getReportedFailures(), d2.getReportedFailures()));
-        // השערת חצי הרחפנים שהכי טובים
-        int limit = (int) Math.ceil(availableDrones.size() / 2.0);
-        ArrayList<Drone> topDrones = new ArrayList<>(availableDrones.subList(0, limit));
-        // מיון לפי השעות עבודה
-        topDrones.sort((d1, d2) -> Double.compare(d1.getWorkNoCharge(), d2.getWorkNoCharge()));
-        //הקצאה בפועל של הכמות הנדרשת
-        // בגלל המיון, הראשונים ברשימה הם אלו עם המינימום שעות שעדיין מספיק
-        if (topDrones.size() < numDrones) {
-            throw new AssignFieldException("Not enough field forces");
+
+        for (int i = 0; i < this.numMedics; i++) {
+            enroll(availableMedics.get(i), hours);
         }
+        // מיון על פי שעות עבודה ללא טעינה, עם עדיפות לתקלות ו-ID
+        availableDrones.sort((d1, d2) -> {
+            int cmp = Double.compare(d1.getWorkNoCharge(), d2.getWorkNoCharge());
+            if (cmp != 0) {
+                return cmp;
+            }
+            cmp = Integer.compare(d1.getReportedFailures(), d2.getReportedFailures());
+            if (cmp != 0) {
+                return cmp;
+            }
+            return Integer.compare(d1.getId(), d2.getId());
+        });
         for (int i = 0; i < numDrones; i++) {
-            enroll(topDrones.get(i), hours);
+            enroll(availableDrones.get(i), hours);
         }
+    }
+
+    public void clearAssignments(double hours) {
+        for (FieldParticipants p : this.fieldParticipants) {
+            if (p instanceof Responder) {
+                Responder r = (Responder) p;
+                r.setBusy(false);
+                if (r instanceof Human) {
+                    Human human = (Human) r;
+                    human.setWorkHours(human.getWorkHours() - hours);
+                } else if (r instanceof Drone) {
+                    Drone drone = (Drone) r;
+                    drone.setWorkNoCharge(drone.getWorkNoCharge() + hours);
+                }
+            }
+        }
+        this.fieldParticipants.clear();
     }
 
     // מתודת עזר

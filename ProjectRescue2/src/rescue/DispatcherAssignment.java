@@ -51,11 +51,11 @@ public class DispatcherAssignment {
     }
 
     //  מקצה מוקדנים לאירוע
-    public void assignAllDispatchers (double hours,  ClearanceLevel clearance){
+    public void assignAllDispatchers (double hours,  ClearanceLevel clearance, NationalRescueAuthority system){
         // יצירת רשימה של Dispatcher
         ArrayList<Dispatcher> available = new ArrayList<>();
         // מיון הרשימה לפי ניסיון
-        for (Responder r : NationalRescueAuthority.responders){
+        for (Responder r : system.getResponders() ){
             // נפריד מהרשימה רק את המוקדנים
             if (r instanceof Dispatcher){
                 Dispatcher d = (Dispatcher) r;
@@ -104,5 +104,13 @@ public class DispatcherAssignment {
         d.setBusy(true);
         d.didWork(hours);
         this.dispatchers.add(d);
+    }
+
+    public void clearAssignments(double hours) {
+        for (Dispatcher d : this.dispatchers) {
+            d.setBusy(false);
+            d.setWorkHours(d.getWorkHours() - hours);
+        }
+        this.dispatchers.clear();
     }
 }

@@ -16,11 +16,11 @@ public abstract class Human extends Responder{
             throws IncidentException{
         super(id, busy, clearance);
         this.name = name;
-        this.workHours = 0;
-        this.salary = 0;
+        this.workHours = workHours;
+        this.salary = salary;
         // אם התעודת זהות לא תקינה נזרוק שגיאה
         if (String.valueOf(id).length() != 9){
-            throw new IncidentException("Invalid ID: Drone ID must be exactly 9 digits.");
+            throw new IncidentException("Invalid ID: Human ID must be exactly 9 digits.");
         }
     }
 
@@ -52,7 +52,7 @@ public abstract class Human extends Responder{
     }
     public void setSalary(double salary) {
         // בדיקה שהשכר החדש אכן גבוה מהנוכחי
-        if (salary > this.salary) {
+        if (salary >= this.salary) {
             this.salary = salary;
         } else {
             throw new IllegalArgumentException("Won't accept a demotion!");

@@ -1,1 +1,4 @@
 ProjectRescue2/.idea/ProjectRescue.iml
+*.class
+*.iml
+*.log

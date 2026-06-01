@@ -108,10 +108,10 @@ public class Incident implements Identifiable<String>{
     }
 
     // ממלאת את רשימת contributors
-     public void assignAll(){
+     public void assignAll(NationalRescueAuthority system){
         // קריאה למתודות שמבצעות את השיבוץ בפועל בניהול ובשטח
-         this.controlRoom.assignAllDispatchers(this.hours, this.clearance);
-         this.inField.assignAllFieldParticipants(this.hours, this.clearance);
+         this.controlRoom.assignAllDispatchers(this.hours, this.clearance, system);
+         this.inField.assignAllFieldParticipants(this.hours, this.clearance, system);
          // מילוי רשימת ה-contributors לאחר שההקצאה הסתיימה
          this.setContributors();
      }
@@ -135,5 +135,24 @@ public class Incident implements Identifiable<String>{
     @Override
     public String getKey() {
         return this.type + "-" + this.serialNumber;
+    }
+
+    public void assignResponders(NationalRescueAuthority system) {
+        if (!this.contributors.isEmpty()) {
+            return;
+        }
+
+        try {
+            this.controlRoom.assignAllDispatchers(this.hours, this.clearance, system);
+            this.inField.assignAllFieldParticipants(this.hours, this.clearance, system);
+            //   מעדכנים את הרשימה
+            this.setContributors();
+        } catch (Exception e) {
+            // החזרת מצב המקורי כשההקצאה נכשלת
+            this.controlRoom.clearAssignments(this.hours);
+            this.inField.clearAssignments(this.hours);
+            // דווח על השגיאה לקובץ הלוג
+            FileManager.logError("ASSIGN_ALL", this.getKey(), e.getMessage());
+        }
     }
 }
